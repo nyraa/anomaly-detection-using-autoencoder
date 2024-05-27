@@ -60,7 +60,7 @@ os.makedirs(cmp_dir, exist_ok=True)
 
 labels = read_labels(label_file)
 
-threshold = 0.021
+threshold = 0.02
 
 y_true = []
 y_pred = []
@@ -82,7 +82,7 @@ with torch.no_grad():
             # blur
             residual_np = cv2.GaussianBlur(residual_np, (21, 21), 0)
             #  _, residual_binary = cv2.threshold(residual_np, 20, 255, cv2.THRESH_BINARY)
-            residual_binary = (residual_np > 20).astype(np.uint8) * 255
+            residual_binary = (residual_np > 20).astype(np.uint8)
 
             
             cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary)
@@ -94,7 +94,7 @@ with torch.no_grad():
         if is_anomalous:
             label_path = f'{label_dir}/{label_file}'
             label = cv2.imread(label_path, cv2.IMREAD_GRAYSCALE)
-            label_binary = (label > 0).astype(np.uint8) * 255
+            label_binary = (label > 0).astype(np.uint8)
         else:
             label_binary = np.zeros_like(residual_binary)
         
