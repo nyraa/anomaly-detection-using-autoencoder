@@ -44,7 +44,7 @@ def f1_score_torch(y_true, y_pred):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AnomalyAE().to(device)
-model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_7_loss=-0.0000.pt')) # class8
+model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_10_loss=-0.0000.pt')) # class8
 model.eval()
 model = model.to('cuda')
 
@@ -60,7 +60,9 @@ os.makedirs(cmp_dir, exist_ok=True)
 
 labels = read_labels(label_file)
 
-threshold = 0.02
+threshold = 0.021
+threshold_2 = 20
+kernel = np.ones((5,5), np.uint8)
 
 y_true = []
 y_pred = []
@@ -80,12 +82,13 @@ with torch.no_grad():
             residual_np = residual.cpu().numpy()
             residual_np = (residual_np > threshold).astype(np.uint8) * 255
             # blur
-            residual_np = cv2.GaussianBlur(residual_np, (21, 21), 0)
+            residual_np = cv2.GaussianBlur(residual_np, (31, 31), 0)
+            residual_np = cv2.dilate(residual_np, kernel, iterations=1)
             #  _, residual_binary = cv2.threshold(residual_np, 20, 255, cv2.THRESH_BINARY)
-            residual_binary = (residual_np > 20).astype(np.uint8)
+            residual_binary = (residual_np > threshold_2).astype(np.uint8)
 
             
-            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary)
+            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
         else:
             residual_binary = cv2.imread(f'{log_dir}/{file_num}_residual.png', cv2.IMREAD_GRAYSCALE)
             residual_binary = (residual_binary > 0).astype(np.uint8)
