@@ -6,6 +6,7 @@ from sklearn.metrics import f1_score
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import os
 
 def read_labels(file_path):
     with open(file_path, 'r') as f:
@@ -43,7 +44,7 @@ def f1_score_torch(y_true, y_pred):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AnomalyAE().to(device)
-model.load_state_dict(torch.load('./tensorboard_logs_04092023_04-25/models/best_model_25_loss=-0.0000.pt')) # class8
+model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_7_loss=-0.0000.pt')) # class8
 model.eval()
 model = model.to('cuda')
 
@@ -52,10 +53,14 @@ label_dir = 'Class8/Test/Label'
 label_file = 'Class8/Test/Label/Labels.txt'
 
 log_dir = 'image/class8_residual'
+cmp_dir = 'image/class8_cmp'
+
+os.makedirs(log_dir, exist_ok=True)
+os.makedirs(cmp_dir, exist_ok=True)
 
 labels = read_labels(label_file)
 
-threshold = 0.007
+threshold = 0.021
 
 y_true = []
 y_pred = []
@@ -72,8 +77,15 @@ with torch.no_grad():
         if True:
             y = model(img)
             residual = torch.abs(img[0][0]-y[0][0])
-            residual_binary = (residual > threshold).type(torch.uint8).cpu().numpy()
-            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
+            residual_np = residual.cpu().numpy()
+            residual_np = (residual_np > threshold).astype(np.uint8) * 255
+            # blur
+            residual_np = cv2.GaussianBlur(residual_np, (21, 21), 0)
+            #  _, residual_binary = cv2.threshold(residual_np, 20, 255, cv2.THRESH_BINARY)
+            residual_binary = (residual_np > 20).astype(np.uint8) * 255
+
+            
+            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary)
         else:
             residual_binary = cv2.imread(f'{log_dir}/{file_num}_residual.png', cv2.IMREAD_GRAYSCALE)
             residual_binary = (residual_binary > 0).astype(np.uint8)
@@ -82,13 +94,26 @@ with torch.no_grad():
         if is_anomalous:
             label_path = f'{label_dir}/{label_file}'
             label = cv2.imread(label_path, cv2.IMREAD_GRAYSCALE)
-            label_binary = (label > 0).astype(np.uint8)
+            label_binary = (label > 0).astype(np.uint8) * 255
         else:
             label_binary = np.zeros_like(residual_binary)
         
+        if False:
+            plt.figure(figsize=(15,10))
+            plt.subplot(121)
+            plt.imshow(residual_binary)
+            plt.title('Residual Thresholded')
+            plt.axis('off')
+            plt.subplot(122)
+            plt.imshow(label_binary)
+            plt.title('Label')
+            plt.axis('off')
+            plt.savefig(f'{cmp_dir}/{file_num}_comparison.png', bbox_inches='tight')
+            # plt.show()
+            plt.close()
         y_true.extend(label_binary.flatten())
         y_pred.extend(residual_binary.flatten())
-        if file_num == '0100':
+        if file_num == '0050':
             break
         
 print('Calculating F1 Score...')
