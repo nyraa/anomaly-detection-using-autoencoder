@@ -46,7 +46,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AnomalyAE().to(device)
 model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_25_loss=-0.0000.pt')) # class8
 model.eval()
-model = model.to('cuda')
 
 test_dir = 'Class8/Test'
 label_dir = 'Class8/Test/Label'
@@ -55,8 +54,8 @@ label_file = 'Class8/Test/Label/Labels.txt'
 log_dir = 'image/class8_residual'
 cmp_dir = 'image/class8_cmp'
 
-os.makedirs(log_dir, exist_ok=True)
-os.makedirs(cmp_dir, exist_ok=True)
+# os.makedirs(log_dir, exist_ok=True)
+# os.makedirs(cmp_dir, exist_ok=True)
 
 labels = read_labels(label_file)
 
@@ -88,7 +87,7 @@ with torch.no_grad():
             residual_binary = (residual_np > threshold_2).astype(np.uint8)
 
             
-            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
+            # cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
         else:
             residual_binary = cv2.imread(f'{log_dir}/{file_num}_residual.png', cv2.IMREAD_GRAYSCALE)
             residual_binary = (residual_binary > 0).astype(np.uint8)
@@ -101,7 +100,7 @@ with torch.no_grad():
         else:
             label_binary = np.zeros_like(residual_binary)
         
-        if True:
+        if False:
             plt.figure(figsize=(15,10))
             plt.subplot(121)
             plt.imshow(residual_binary)
@@ -118,7 +117,7 @@ with torch.no_grad():
         y_pred.extend(residual_binary.flatten())
         # if file_num == '0050':
         #     break
-        
+
 print('Calculating F1 Score...')
-f1 = f1_score(y_true, y_pred)
+f1 = f1_score_torch(y_true, y_pred)
 print(f'F1 Score: {f1:.4f}')
