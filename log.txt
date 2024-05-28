@@ -1,6 +1,7 @@
 default model: F1 Score: 0.0488
 default model with image pre-processing: 0.2858
-new model with image pre-processing: 0.4137
+new data with image pre-processing: 0.4137
+new model with image pre-processing: 0.4888
 
 use binary label:
 new model: 1.0
