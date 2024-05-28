@@ -44,7 +44,7 @@ def f1_score_torch(y_true, y_pred):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AnomalyAE().to(device)
-model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_25_loss=-0.0000.pt')) # class8
+model.load_state_dict(torch.load(r'tensorboard_logs_28052024_06-39\models\best_model_25_loss=-0.0004.pt')) # class8
 model.eval()
 
 test_dir = 'Class8/Test'
@@ -59,7 +59,7 @@ cmp_dir = 'image/class8_cmp'
 
 labels = read_labels(label_file)
 
-threshold = 0.007
+threshold = 0.1
 threshold_2 = 20
 kernel = np.ones((5,5), np.uint8)
 
@@ -87,7 +87,7 @@ with torch.no_grad():
             residual_binary = (residual_np > threshold_2).astype(np.uint8)
 
             
-            # cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
+            cv2.imwrite(f'{log_dir}/{file_num}_residual.png', residual_binary * 255)
         else:
             residual_binary = cv2.imread(f'{log_dir}/{file_num}_residual.png', cv2.IMREAD_GRAYSCALE)
             residual_binary = (residual_binary > 0).astype(np.uint8)
