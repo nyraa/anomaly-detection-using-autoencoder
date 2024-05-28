@@ -42,8 +42,6 @@ class AnomalyAE(nn.Module):
         return x
 
 if __name__ == "__main__":
-    x = torch.rand([16,1,512,512])
-    model = AnomalyAE()
-    y = model(x)
-    print(x.shape, x.dtype)
-    print(y.shape, y.dtype)
+    from torchsummary import summary
+    model = AnomalyAE().to('cuda')
+    summary(model, (1, 512, 512))
