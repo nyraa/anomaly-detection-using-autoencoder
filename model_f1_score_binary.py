@@ -45,13 +45,13 @@ model = AnomalyAE().to(device)
 model.load_state_dict(torch.load(r'tensorboard_logs_28052024_06-39\models\best_model_25_loss=-0.0004.pt')) # class8
 model.eval()
 
-test_folder = 'Class8/Train'
+test_folder = 'Class8/Test'
 filelist, y_true = read_labels(f'{test_folder}/Label/Labels.txt')
 transform = Compose([Grayscale(), ToTensor()])
 y_pred = []
 
-threshold = 0.2
-postive_threshold = 3
+threshold = 0.1
+postive_threshold = 20
 
 # for debugging
 verbose = True
@@ -64,7 +64,7 @@ for file, label in zip(filelist, y_true):
     y = model(img)
     residual = torch.abs(img[0][0]-y[0][0])
     sum = (residual.detach().cpu().numpy()>threshold).ravel().sum()
-    if verbose:
+    if verbose and label == 1:
         print(f'{file}: {sum}, {label} {"fn" if label == 1 and sum < postive_threshold else "fp" if label == 0 and sum > postive_threshold else ""}')
     y_pred.append(1 if sum >= postive_threshold else 0)
     i += 1
