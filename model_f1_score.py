@@ -44,7 +44,7 @@ def f1_score_torch(y_true, y_pred):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = AnomalyAE().to(device)
-model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_10_loss=-0.0000.pt')) # class8
+model.load_state_dict(torch.load(r'tensorboard_logs_28052024_01-29\models\best_model_25_loss=-0.0000.pt')) # class8
 model.eval()
 model = model.to('cuda')
 
@@ -60,7 +60,7 @@ os.makedirs(cmp_dir, exist_ok=True)
 
 labels = read_labels(label_file)
 
-threshold = 0.021
+threshold = 0.007
 threshold_2 = 20
 kernel = np.ones((5,5), np.uint8)
 
@@ -101,7 +101,7 @@ with torch.no_grad():
         else:
             label_binary = np.zeros_like(residual_binary)
         
-        if False:
+        if True:
             plt.figure(figsize=(15,10))
             plt.subplot(121)
             plt.imshow(residual_binary)
@@ -116,9 +116,9 @@ with torch.no_grad():
             plt.close()
         y_true.extend(label_binary.flatten())
         y_pred.extend(residual_binary.flatten())
-        if file_num == '0050':
-            break
+        # if file_num == '0050':
+        #     break
         
 print('Calculating F1 Score...')
-f1 = f1_score_torch(y_true, y_pred)
+f1 = f1_score(y_true, y_pred)
 print(f'F1 Score: {f1:.4f}')
